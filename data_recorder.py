@@ -15,13 +15,15 @@ class BearwalkDataRecorder(object):
         self.request = urllib2.Request(self.url, '')
         self.file = file
 
+    def get_response(self):
+        print 'requesting'
+        response = urllib2.urlopen(self.request)
+        return json.loads(response.read())
+
     def record(self):
         with open(self.file, 'a') as f:
             while True:
-                print 'requesting'
-                response = urllib2.urlopen(self.request)
-                data = json.loads(response.read())
-
+                data = self.get_response()
                 string = json.dumps({str(datetime.datetime.now()): data})
                 f.write('{}\n'.format(string))
 
