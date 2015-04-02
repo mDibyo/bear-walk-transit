@@ -6,9 +6,10 @@ import urlparse
 import time
 import datetime
 import json
+from pymongo import MongoClient
 
 
-class BearwalkDataRecorder(object):
+class BeartransitDataRecorder(object):
     def __init__(self, file):
         self.url = urlparse.ParseResult(scheme='http',
                                         netloc='bearwalk.berkeley.edu',
@@ -44,3 +45,24 @@ class BearwalkDataRecorder(object):
 
                 time.sleep(5)
 
+
+class BeartransitDatabaseDataRecorder(BeartransitDataRecorder):
+    DATABASE_NAME = 'bear_transit'
+    COLLECTION_NAME = 'api_call'
+
+    def __init__(self):
+        super(BeartransitDatabaseDataRecorder, self).__init__("")
+
+        self.client = MongoClient('localhost', 27017)
+        self.db = self.client[self.DATABASE_NAME]
+        self.db_collection = self.db[self.COLLECTION_NAME]
+
+    def record(self):
+        while True:
+            data = self.get_response()
+            self.db_collection.insert({
+                "timestamp": time.time(),
+                "data": data
+            })
+
+            time.sleep(5)
