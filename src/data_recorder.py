@@ -72,22 +72,23 @@ class BeartransitDatabaseDataRecorder(BeartransitDataRecorder):
 
 
 if __name__ == '__main__':
+    import os
     from argparse import ArgumentParser
 
     description = 'Record results of API calls to Bear Transit'
     parser = ArgumentParser(description=description)
-    parser.add_argument('--url', '-u',
-                        default=BeartransitDatabaseDataRecorder.DATABASE_URL)
-    parser.add_argument('--port', '-p', type=int,
-                        default=BeartransitDatabaseDataRecorder.DATABASE_PORT)
     parser.add_argument('--database', '-d',
                         default=BeartransitDatabaseDataRecorder.DATABASE_NAME)
     parser.add_argument('--collection', '-c',
                         default=BeartransitDatabaseDataRecorder.COLLECTION_NAME)
     args = parser.parse_args()
 
-    BeartransitDatabaseDataRecorder.DATABASE_URL = args.url
-    BeartransitDatabaseDataRecorder.DATABASE_PORT = args.port
+    BeartransitDatabaseDataRecorder.DATABASE_URL = \
+        os.environ.get('DATABASE_URL',
+                       BeartransitDatabaseDataRecorder.DATABASE_URL)
+    BeartransitDatabaseDataRecorder.DATABASE_PORT = \
+        os.environ.get('DATABASE_PORT',
+                       BeartransitDatabaseDataRecorder.DATABASE_PORT)
     BeartransitDatabaseDataRecorder.DATABASE_NAME = args.database
     BeartransitDatabaseDataRecorder.COLLECTION_NAME = args.collection
 
