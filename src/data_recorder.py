@@ -47,13 +47,16 @@ class BeartransitDataRecorder(object):
 
 
 class BeartransitDatabaseDataRecorder(BeartransitDataRecorder):
+    DATABASE_PORT = 27017
+    DATABASE_URL = 'localhost'
+
     DATABASE_NAME = 'bear_transit'
     COLLECTION_NAME = 'api_call'
 
     def __init__(self):
         super(BeartransitDatabaseDataRecorder, self).__init__("")
 
-        self.client = MongoClient('localhost', 27017)
+        self.client = MongoClient(self.DATABASE_URL, self.DATABASE_PORT)
         self.db = self.client[self.DATABASE_NAME]
         self.db_collection = self.db[self.COLLECTION_NAME]
 
@@ -66,3 +69,27 @@ class BeartransitDatabaseDataRecorder(BeartransitDataRecorder):
             })
 
             time.sleep(5)
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser
+
+    description = 'Record results of API calls to Bear Transit'
+    parser = ArgumentParser(description=description)
+    parser.add_argument('--url', '-u',
+                        default=BeartransitDatabaseDataRecorder.DATABASE_URL)
+    parser.add_argument('--port', '-p', type=int,
+                        default=BeartransitDatabaseDataRecorder.DATABASE_PORT)
+    parser.add_argument('--database', '-d',
+                        default=BeartransitDatabaseDataRecorder.DATABASE_NAME)
+    parser.add_argument('--collection', '-c',
+                        default=BeartransitDatabaseDataRecorder.COLLECTION_NAME)
+    args = parser.parse_args()
+
+    BeartransitDatabaseDataRecorder.DATABASE_URL = args.url
+    BeartransitDatabaseDataRecorder.DATABASE_PORT = args.port
+    BeartransitDatabaseDataRecorder.DATABASE_NAME = args.database
+    BeartransitDatabaseDataRecorder.COLLECTION_NAME = args.collection
+
+    recorder = BeartransitDatabaseDataRecorder()
+    recorder.record()
