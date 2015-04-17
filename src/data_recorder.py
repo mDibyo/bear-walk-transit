@@ -49,6 +49,7 @@ class BeartransitDataRecorder(object):
 class BeartransitDatabaseDataRecorder(BeartransitDataRecorder):
     DATABASE_PORT = 27017
     DATABASE_URL = 'localhost'
+    DATABASE_URI = None
 
     DATABASE_NAME = 'bear_transit'
     COLLECTION_NAME = 'api_call'
@@ -56,8 +57,14 @@ class BeartransitDatabaseDataRecorder(BeartransitDataRecorder):
     def __init__(self):
         super(BeartransitDatabaseDataRecorder, self).__init__("")
 
-        self.client = MongoClient(self.DATABASE_URL, self.DATABASE_PORT)
-        self.db = self.client[self.DATABASE_NAME]
+        if self.DATABASE_URL is None and self.DATABASE_PORT is None:
+            # Handling for MongoLab
+            self.client = MongoClient(self.DATABASE_URI)
+            self.db = self.client.get_default_database()
+            self.DATABASE_NAME = self.db.name
+        else:
+            self.client = MongoClient(self.DATABASE_URL, self.DATABASE_PORT)
+            self.db = self.client[self.DATABASE_NAME]
         self.db_collection = self.db[self.COLLECTION_NAME]
 
     def record(self):
@@ -82,15 +89,14 @@ if __name__ == '__main__':
     parser.add_argument('--collection', '-c',
                         default=BeartransitDatabaseDataRecorder.COLLECTION_NAME)
     args = parser.parse_args()
-
-    BeartransitDatabaseDataRecorder.DATABASE_URL = \
-        os.environ.get('DATABASE_URL',
-                       BeartransitDatabaseDataRecorder.DATABASE_URL)
-    BeartransitDatabaseDataRecorder.DATABASE_PORT = \
-        os.environ.get('DATABASE_PORT',
-                       BeartransitDatabaseDataRecorder.DATABASE_PORT)
     BeartransitDatabaseDataRecorder.DATABASE_NAME = args.database
     BeartransitDatabaseDataRecorder.COLLECTION_NAME = args.collection
+
+    BeartransitDatabaseDataRecorder.DATABASE_URI = \
+        os.environ.get('MONGOLAB_URI',
+                       BeartransitDatabaseDataRecorder.DATABASE_URI)
+    BeartransitDatabaseDataRecorder.DATABASE_PORT = None
+    BeartransitDatabaseDataRecorder.DATABASE_URL = None
 
     recorder = BeartransitDatabaseDataRecorder()
     recorder.record()
